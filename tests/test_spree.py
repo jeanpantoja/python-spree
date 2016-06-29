@@ -11,19 +11,58 @@ Tests for `spree` module.
 import pytest 	# noqa
 
 
-from spree import spree
+def test_products_all(resp, spree):
+    "test fetching all products"
+    products = spree.product.all()
+    assert products.count == 16
+    test_product = products[0]['products'][1]
+    assert test_product['name'] == 'Ruby on Rails Bag'
+    assert test_product['master']['sku'] == 'ROR-00012'
+    assert test_product['description'] == 'Et illo et' \
+        ' voluptatum corporis. Fugiat atque optio voluptates' \
+        ' placeat ut odio. Iusto totam molestiae tenetur eaque' \
+        ' molestias. Occaecati sunt sit magni voluptatibus qui ipsum.'
+    assert test_product['price'] == '22.99'
+    assert test_product['display_price'] == '$22.99'
+    assert test_product['available_on'] == '2016-06-27T11:10:17.000Z'
+    assert test_product['slug'] == 'ruby-on-rails-bag'
+    assert test_product['shipping_category_id'] == 1
 
 
-class TestSpree(object):
+def test_finding_one_product(resp, spree):
+    "test fetching product with respect to id"
+    test_product = spree.product.find(2)
+    assert test_product['name'] == 'Ruby on Rails Bag'
+    assert test_product['master']['sku'] == 'ROR-00012'
+    assert test_product['description'] == 'Et illo et' \
+        ' voluptatum corporis. Fugiat atque optio voluptates' \
+        ' placeat ut odio. Iusto totam molestiae tenetur eaque' \
+        ' molestias. Occaecati sunt sit magni voluptatibus qui ipsum.'
+    assert test_product['price'] == '22.99'
+    assert test_product['display_price'] == '$22.99'
+    assert test_product['available_on'] == '2016-06-27T11:10:17.000Z'
+    assert test_product['slug'] == 'ruby-on-rails-bag'
+    assert test_product['shipping_category_id'] == 1
 
-    @classmethod
-    def setup_class(cls):
-        spree
-        pass
 
-    def test_something(self):
-        pass
+def test_orders_all(resp, spree):
+    "test fetching all orders"
+    test_orders = spree.orders.all()
+    test_order = test_orders[0]['orders'][0]
+    assert test_order['number'] == 'R123456789'
+    assert test_order['item_total'] == '15.99'
+    assert test_order['state'] == 'complete'
+    assert test_order['shipment_state'] == 'pending'
+    assert test_order['payment_total'] == '0.0'
+    assert test_order['token'] == 'aAoojFjB1_PCBeLR1VPnIg'
 
-    @classmethod
-    def teardown_class(cls):
-        pass
+
+def test_finding_one_order(resp, spree):
+    "test fetching order with respect to order_id"
+    test_order = spree.orders.find('R123456789')
+    assert test_order['number'] == 'R123456789'
+    assert test_order['item_total'] == '15.99'
+    assert test_order['state'] == 'complete'
+    assert test_order['shipment_state'] == 'pending'
+    assert test_order['payment_total'] == '0.0'
+    assert test_order['token'] == 'aAoojFjB1_PCBeLR1VPnIg'
