@@ -15,12 +15,12 @@ class Spree(object):
         return Product(connection=self)
 
     @property
-    def orders(self):
-        return Orders(connection=self)
+    def order(self):
+        return Order(connection=self)
 
     @property
-    def stock_items(self):
-        return StockItems(connection=self)
+    def stock_item(self):
+        return StockItem(connection=self)
 
 
 class Pagination(object):
@@ -62,7 +62,7 @@ class Resource(object):
     def all(self):
         return Pagination(
             self.connection.session.get(self.url).json(),
-            self.path[1:]
+            self.item_attribute
         )
 
     def find(self, id):
@@ -89,7 +89,12 @@ class Resource(object):
 
 
 class Product(Resource):
+    """
+    A product Resource class
+    """
+
     path = '/products'
+    item_attribute = 'products'
 
     def load_payload(self, data):
         payload = {
@@ -126,10 +131,47 @@ class Product(Resource):
         return super(Product, self).load_payload(payload)
 
 
-class Orders(Resource):
+class Order(Resource):
+    """
+    An order Resource class
+    """
+
     path = '/orders'
+    item_attribute = 'orders'
 
 
-class StockItems(Resource):
-    # TODO
-    path = '/stock_locations'
+class StockItem(Resource):
+    """
+    A stock item Resource class
+    """
+
+    path = '/stock_locations' + '/%d'
+    item_attribute = 'stock_items'
+
+    def append_path(self, stk_loc_id):
+        return self.path % stk_loc_id + '/stock_items'
+
+    def load_payload(self, data):
+        payload = {}
+        if 'count_on_hand' in data:
+            payload['stock_item[count_on_hand]'] = \
+                data['count_on_hand']
+        if 'force' in data:
+            payload['stock_item[force]'] = data['force']
+        return super(StockItem, self).load_payload(payload)
+
+    def all(self, stk_loc_id):
+        self.path = self.append_path(stk_loc_id)
+        return super(StockItem, self).all()
+
+    def find(self, stk_loc_id, stk_id):
+        self.path = self.append_path(stk_loc_id)
+        return super(StockItem, self).find(stk_id)
+
+    def update(self, stk_loc_id, stk_id, data):
+        self.path = self.append_path(stk_loc_id)
+        return super(StockItem, self).update(stk_id, data)
+
+    def delete(self, stk_loc_id, stk_id):
+        self.path = self.append_path(stk_loc_id)
+        return super(StockItem, self).delete(stk_id)

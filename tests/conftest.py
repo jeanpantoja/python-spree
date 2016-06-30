@@ -51,6 +51,18 @@ def resp(fp):
         body=open(fp('responses/order-R123456789.json'), 'r').read()
     )
 
+    "StockItems"
+    rsps.add(
+        responses.GET,
+        'http://mystore/api/stock_locations/1/stock_items',
+        body=open(fp('responses/stock_items.json'), 'r').read()
+    )
+    rsps.add(
+        responses.GET,
+        'http://mystore/api/stock_locations/1/stock_items/4',
+        body=open(fp('responses/stock_item-4.json'), 'r').read()
+    )
+
     yield rsps
 
     rsps.stop()

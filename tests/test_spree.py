@@ -47,7 +47,7 @@ def test_finding_one_product(resp, spree):
 
 def test_orders_all(resp, spree):
     "test fetching all orders"
-    test_orders = spree.orders.all()
+    test_orders = spree.order.all()
     test_order = test_orders[0]['orders'][0]
     assert test_order['number'] == 'R123456789'
     assert test_order['item_total'] == '15.99'
@@ -59,10 +59,27 @@ def test_orders_all(resp, spree):
 
 def test_finding_one_order(resp, spree):
     "test fetching order with respect to order_id"
-    test_order = spree.orders.find('R123456789')
+    test_order = spree.order.find('R123456789')
     assert test_order['number'] == 'R123456789'
     assert test_order['item_total'] == '15.99'
     assert test_order['state'] == 'complete'
     assert test_order['shipment_state'] == 'pending'
     assert test_order['payment_total'] == '0.0'
     assert test_order['token'] == 'aAoojFjB1_PCBeLR1VPnIg'
+
+
+def test_stock_items_all(resp, spree):
+    "test fetching all stock items"
+    test_stock_items = spree.stock_item.all(1)
+    test_stock_item = test_stock_items[0]['stock_items'][0]
+    assert test_stock_item['count_on_hand'] == 10
+    assert test_stock_item['stock_location_id'] == 1
+    assert test_stock_item['variant_id'] == 4
+
+
+def test_finding_one_stock_item(resp, spree):
+    "test fetching all stock items"
+    test_stock_item = spree.stock_item.find(1, 4)
+    assert test_stock_item['count_on_hand'] == 10
+    assert test_stock_item['stock_location_id'] == 1
+    assert test_stock_item['variant_id'] == 4
