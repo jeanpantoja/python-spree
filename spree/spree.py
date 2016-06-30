@@ -36,12 +36,18 @@ class Pagination(object):
     def __iter__(self):
         return self
 
-    def __getitem__(self, key):
-        return self.data
+    def __getitem__(self, index):
+        return self.items[index]
+
+    def __setitem__(self, index, value):
+        self.items[index] = value
 
     def next(self):
-        self.current_index += 1
-        return self.items[self.current_index]
+        if self.current_index < self.count-1:
+            self.current_index += 1
+            return self.items[self.current_index]
+        else:
+            raise StopIteration
 
 
 class Resource(object):
