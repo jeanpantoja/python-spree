@@ -83,3 +83,12 @@ def test_finding_one_stock_item(resp, spree):
     assert test_stock_item['count_on_hand'] == 10
     assert test_stock_item['stock_location_id'] == 1
     assert test_stock_item['variant_id'] == 4
+
+
+def test_variant_via_permalink(resp, spree):
+    "test fetching variant by product permalink"
+    test_variants = spree.variant.all('ruby-on-rails-jr-spaghetti')
+    test_variant = test_variants[0]
+    assert test_variant['sku'] == 'ROR-00013'
+    assert test_variant['price'] == '19.99'
+    assert test_variant['cost_price'] == '17.0'
