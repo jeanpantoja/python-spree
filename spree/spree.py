@@ -22,6 +22,10 @@ class Spree(object):
     def stock_item(self):
         return StockItem(connection=self)
 
+    @property
+    def variant(self):
+        return Variant(connection=self)
+
 
 class Pagination(object):
     def __init__(self, data, items_attribute):
@@ -36,12 +40,18 @@ class Pagination(object):
     def __iter__(self):
         return self
 
-    def __getitem__(self, key):
-        return self.data
+    def __getitem__(self, index):
+        return self.items[index]
+
+    def __setitem__(self, index, value):
+        self.items[index] = value
 
     def next(self):
-        self.current_index += 1
-        return self.items[self.current_index]
+        if self.current_index < self.count-1:
+            self.current_index += 1
+            return self.items[self.current_index]
+        else:
+            raise StopIteration
 
 
 class Resource(object):
@@ -175,3 +185,16 @@ class StockItem(Resource):
     def delete(self, stk_loc_id, stk_id):
         self.path = self.append_path(stk_loc_id)
         return super(StockItem, self).delete(stk_id)
+
+
+class Variant(Resource):
+    """
+    A variant item Resource class
+    """
+
+    path = '/variants'
+    item_attribute = 'variants'
+
+    def all(self, permalink):
+        self.path = '/products' + '/' + permalink + self.path
+        return super(Variant, self).all()

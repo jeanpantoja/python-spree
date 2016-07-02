@@ -15,7 +15,7 @@ def test_products_all(resp, spree):
     "test fetching all products"
     products = spree.product.all()
     assert products.count == 16
-    test_product = products[0]['products'][1]
+    test_product = products[1]
     assert test_product['name'] == 'Ruby on Rails Bag'
     assert test_product['master']['sku'] == 'ROR-00012'
     assert test_product['description'] == 'Et illo et' \
@@ -48,7 +48,7 @@ def test_finding_one_product(resp, spree):
 def test_orders_all(resp, spree):
     "test fetching all orders"
     test_orders = spree.order.all()
-    test_order = test_orders[0]['orders'][0]
+    test_order = test_orders[0]
     assert test_order['number'] == 'R123456789'
     assert test_order['item_total'] == '15.99'
     assert test_order['state'] == 'complete'
@@ -71,7 +71,7 @@ def test_finding_one_order(resp, spree):
 def test_stock_items_all(resp, spree):
     "test fetching all stock items"
     test_stock_items = spree.stock_item.all(1)
-    test_stock_item = test_stock_items[0]['stock_items'][0]
+    test_stock_item = test_stock_items[0]
     assert test_stock_item['count_on_hand'] == 10
     assert test_stock_item['stock_location_id'] == 1
     assert test_stock_item['variant_id'] == 4
@@ -83,3 +83,12 @@ def test_finding_one_stock_item(resp, spree):
     assert test_stock_item['count_on_hand'] == 10
     assert test_stock_item['stock_location_id'] == 1
     assert test_stock_item['variant_id'] == 4
+
+
+def test_variant_via_permalink(resp, spree):
+    "test fetching variant by product permalink"
+    test_variants = spree.variant.all('ruby-on-rails-jr-spaghetti')
+    test_variant = test_variants[0]
+    assert test_variant['sku'] == 'ROR-00013'
+    assert test_variant['price'] == '19.99'
+    assert test_variant['cost_price'] == '17.0'
