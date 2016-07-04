@@ -23,7 +23,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author="Fulfil.IO Inc.",
     author_email='info@fulfil.io',
-    url='https://github.com/audreyr/spree',
+    url='https://github.com/fulfilio/python-spree',
     packages=[
         'spree',
     ],
