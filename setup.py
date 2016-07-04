@@ -18,12 +18,12 @@ test_requirements = [
 
 setup(
     name='spree',
-    version='0.1.0',
+    version='0.1.1',
     description="Spree python api client",
     long_description=readme + '\n\n' + history,
     author="Fulfil.IO Inc.",
     author_email='info@fulfil.io',
-    url='https://github.com/audreyr/spree',
+    url='https://github.com/fulfilio/python-spree',
     packages=[
         'spree',
     ],
