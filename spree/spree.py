@@ -28,14 +28,31 @@ class Spree(object):
 
 
 class Pagination(object):
-    def __init__(self, data, items_attribute):
+    def __init__(self, data, items_attribute, resource):
         self.data = data
         self.items = data[items_attribute]
         self.current_index = -1
+        self.resource = resource
 
     @property
     def count(self):
-        return self.data['count']
+        return int(self.data['count'])
+
+    @property
+    def page(self):
+        return int(self.data['current_page'])
+
+    @property
+    def pages(self):
+        return int(self.data['pages'])
+
+    @property
+    def has_next(self):
+        return self.pages > self.page
+
+    def next_page(self):
+        if self.has_next:
+            return self.resource.all(page=self.page + 1)
 
     def __iter__(self):
         return self
@@ -51,7 +68,7 @@ class Pagination(object):
             self.current_index += 1
             return self.items[self.current_index]
         else:
-            raise StopIteration
+            raise StopIteration()
 
 
 class Resource(object):
@@ -59,8 +76,9 @@ class Resource(object):
     A base class for all Resources to extend
     """
 
-    def __init__(self, connection):
+    def __init__(self, connection, per_page=25):
         self.connection = connection
+        self.per_page = per_page
 
     @property
     def url(self):
@@ -69,10 +87,16 @@ class Resource(object):
     def load_payload(self, data):
         return data
 
-    def all(self):
+    def all(self, page=1):
+        params = {
+            'page': page,
+            'per_page': self.per_page,
+        }
+        response = self.connection.session.get(self.url, params=params).json()
         return Pagination(
-            self.connection.session.get(self.url).json(),
-            self.item_attribute
+            response,
+            self.item_attribute,
+            resource=self
         )
 
     def find(self, id):
