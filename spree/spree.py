@@ -19,23 +19,41 @@ class Spree(object):
         return Order(connection=self)
 
     @property
-    def stock_item(self):
-        return StockItem(connection=self)
-
-    @property
     def variant(self):
         return Variant(connection=self)
 
+    def get_stock_item(self, location_id):
+        return StockItem(location_id, connection=self)
+
 
 class Pagination(object):
-    def __init__(self, data, items_attribute):
+    def __init__(self, data, items_attribute, resource, filters=None):
         self.data = data
         self.items = data[items_attribute]
         self.current_index = -1
+        self.resource = resource
+        self.filters = filters
 
     @property
     def count(self):
-        return self.data['count']
+        return int(self.data['count'])
+
+    @property
+    def page(self):
+        return int(self.data['current_page'])
+
+    @property
+    def pages(self):
+        return int(self.data['pages'])
+
+    @property
+    def has_next(self):
+        return self.pages > self.page
+
+    def next_page(self):
+        if self.has_next:
+            return self.resource.find(
+                page=self.page + 1, filters=self.filters)
 
     def __iter__(self):
         return self
@@ -51,7 +69,7 @@ class Pagination(object):
             self.current_index += 1
             return self.items[self.current_index]
         else:
-            raise StopIteration
+            raise StopIteration()
 
 
 class Resource(object):
@@ -59,8 +77,9 @@ class Resource(object):
     A base class for all Resources to extend
     """
 
-    def __init__(self, connection):
+    def __init__(self, connection, per_page=25):
         self.connection = connection
+        self.per_page = per_page
 
     @property
     def url(self):
@@ -69,16 +88,33 @@ class Resource(object):
     def load_payload(self, data):
         return data
 
-    def all(self):
+    def find(self, page=1, filters=None):
+        """
+        Find all records that respect given filters
+
+        :param filters: Dictionary whose key-value pairs are in
+        for of: {
+            'q[name_of_parameter_identifier]': 'some-value',
+        }
+        Reference: https://github.com/ernie/ransack/wiki/Basic-Searching
+        :return: Paginated list of response
+        """
+        params = filters or {}
+        params.update({
+            'page': page,
+            'per_page': self.per_page,
+        })
+        response = self.connection.session.get(self.url, params=params).json()
         return Pagination(
-            self.connection.session.get(self.url).json(),
-            self.item_attribute
+            response,
+            self.item_attribute,
+            resource=self,
+            filters=filters,
         )
 
-    def find(self, id):
-        "find a given record"
-        # str() - ordernumber is a string
-        path = self.url + '/%s' % str(id)
+    def get(self, id):
+        "Fetch a record with given id"
+        path = self.url + '/%s' % id
         return self.connection.session.get(path).json()
 
     def create(self, data):
@@ -155,11 +191,15 @@ class StockItem(Resource):
     A stock item Resource class
     """
 
-    path = '/stock_locations' + '/%d'
     item_attribute = 'stock_items'
 
-    def append_path(self, stk_loc_id):
-        return self.path % stk_loc_id + '/stock_items'
+    def __init__(self, location_id, *args, **kwargs):
+        super(StockItem, self).__init__(*args, **kwargs)
+        self.location_id = location_id
+
+    @property
+    def path(self):
+        return '/stock_locations/%d/stock_items' % self.location_id
 
     def load_payload(self, data):
         payload = {}
@@ -170,22 +210,6 @@ class StockItem(Resource):
             payload['stock_item[force]'] = data['force']
         return super(StockItem, self).load_payload(payload)
 
-    def all(self, stk_loc_id):
-        self.path = self.append_path(stk_loc_id)
-        return super(StockItem, self).all()
-
-    def find(self, stk_loc_id, stk_id):
-        self.path = self.append_path(stk_loc_id)
-        return super(StockItem, self).find(stk_id)
-
-    def update(self, stk_loc_id, stk_id, data):
-        self.path = self.append_path(stk_loc_id)
-        return super(StockItem, self).update(stk_id, data)
-
-    def delete(self, stk_loc_id, stk_id):
-        self.path = self.append_path(stk_loc_id)
-        return super(StockItem, self).delete(stk_id)
-
 
 class Variant(Resource):
     """
@@ -194,7 +218,3 @@ class Variant(Resource):
 
     path = '/variants'
     item_attribute = 'variants'
-
-    def all(self, permalink):
-        self.path = '/products' + '/' + permalink + self.path
-        return super(Variant, self).all()
