@@ -13,7 +13,7 @@ import pytest 	# noqa
 
 def test_products_all(resp, spree):
     "test fetching all products"
-    products = spree.product.all()
+    products = spree.product.find()
     assert products.count == 16
     test_product = products[1]
     assert test_product['name'] == 'Ruby on Rails Bag'
@@ -31,7 +31,7 @@ def test_products_all(resp, spree):
 
 def test_finding_one_product(resp, spree):
     "test fetching product with respect to id"
-    test_product = spree.product.find(2)
+    test_product = spree.product.get(2)
     assert test_product['name'] == 'Ruby on Rails Bag'
     assert test_product['master']['sku'] == 'ROR-00012'
     assert test_product['description'] == 'Et illo et' \
@@ -47,7 +47,7 @@ def test_finding_one_product(resp, spree):
 
 def test_orders_all(resp, spree):
     "test fetching all orders"
-    test_orders = spree.order.all()
+    test_orders = spree.order.find()
     test_order = test_orders[0]
     assert test_order['number'] == 'R123456789'
     assert test_order['item_total'] == '15.99'
@@ -59,7 +59,7 @@ def test_orders_all(resp, spree):
 
 def test_finding_one_order(resp, spree):
     "test fetching order with respect to order_id"
-    test_order = spree.order.find('R123456789')
+    test_order = spree.order.get('R123456789')
     assert test_order['number'] == 'R123456789'
     assert test_order['item_total'] == '15.99'
     assert test_order['state'] == 'complete'
@@ -70,7 +70,8 @@ def test_finding_one_order(resp, spree):
 
 def test_stock_items_all(resp, spree):
     "test fetching all stock items"
-    test_stock_items = spree.stock_item.all(1)
+    stock_item = spree.get_stock_item(1)
+    test_stock_items = stock_item.find()
     test_stock_item = test_stock_items[0]
     assert test_stock_item['count_on_hand'] == 10
     assert test_stock_item['stock_location_id'] == 1
@@ -79,7 +80,8 @@ def test_stock_items_all(resp, spree):
 
 def test_finding_one_stock_item(resp, spree):
     "test fetching all stock items"
-    test_stock_item = spree.stock_item.find(1, 4)
+    stock_item = spree.get_stock_item(1)
+    test_stock_item = stock_item.get(4)
     assert test_stock_item['count_on_hand'] == 10
     assert test_stock_item['stock_location_id'] == 1
     assert test_stock_item['variant_id'] == 4
@@ -87,7 +89,9 @@ def test_finding_one_stock_item(resp, spree):
 
 def test_variant_via_permalink(resp, spree):
     "test fetching variant by product permalink"
-    test_variants = spree.variant.all('ruby-on-rails-jr-spaghetti')
+    test_variants = spree.variant.find(filters={
+        'product_id': 'ruby-on-rails-jr-spaghetti'
+    })
     test_variant = test_variants[0]
     assert test_variant['sku'] == 'ROR-00013'
     assert test_variant['price'] == '19.99'
