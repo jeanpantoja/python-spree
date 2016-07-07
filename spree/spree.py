@@ -19,12 +19,11 @@ class Spree(object):
     def order(self):
         return Order(connection=self)
 
-    @property
-    def variant(self):
-        return Variant(connection=self)
-
     def get_stock_item(self, location_id):
         return StockItem(location_id, connection=self)
+
+    def get_variant(self, product_id):
+        return Variant(product_id, connection=self)
 
 
 class Pagination(object):
@@ -232,5 +231,12 @@ class Variant(Resource):
     A variant item Resource class
     """
 
-    path = '/variants'
     item_attribute = 'variants'
+
+    def __init__(self, product_id, *args, **kwargs):
+        super(Variant, self).__init__(*args, **kwargs)
+        self.product_id = product_id
+
+    @property
+    def path(self):
+        return '/products/%s/variants' % self.product_id
