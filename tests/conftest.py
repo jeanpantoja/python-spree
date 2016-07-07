@@ -66,7 +66,7 @@ def resp(fp):
     "Variants"
     rsps.add(
         responses.GET,
-        'http://mystore/api/variants',
+        'http://mystore/api/products/ruby-on-rails-jr-spaghetti/variants',
         body=open(fp('responses/variant-ROR-00013.json'), 'r').read()
     )
 
