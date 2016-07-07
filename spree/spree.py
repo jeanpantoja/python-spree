@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import requests
+from .exceptions import ResourceNotFound
 
 
 class Spree(object):
@@ -85,6 +86,12 @@ class Resource(object):
     def url(self):
         return self.connection.url + self.path
 
+    @classmethod
+    def validate_response(cls, response):
+        if response.status_code == 404:
+            raise ResourceNotFound('Resource not found.')
+        response.raise_for_status()
+
     def load_payload(self, data):
         return data
 
@@ -104,9 +111,10 @@ class Resource(object):
             'page': page,
             'per_page': self.per_page,
         })
-        response = self.connection.session.get(self.url, params=params).json()
+        response = self.connection.session.get(self.url, params=params)
+        self.validate_response(response)
         return Pagination(
-            response,
+            response.json(),
             self.item_attribute,
             resource=self,
             filters=filters,
@@ -115,23 +123,31 @@ class Resource(object):
     def get(self, id):
         "Fetch a record with given id"
         path = self.url + '/%s' % id
-        return self.connection.session.get(path).json()
+        response = self.connection.session.get(path)
+        self.validate_response(response)
+        return response.json()
 
     def create(self, data):
         "create a record with the given data"
         payload = self.load_payload(data)
-        return self.connection.session.post(self.url, data=payload).json()
+        response = self.connection.session.post(self.url, data=payload)
+        self.validate_response(response)
+        return response.json()
 
     def update(self, id, data):
         "update the record with given data"
         path = self.url + '/%d' % id
         payload = self.load_payload(data)
-        return self.connection.session.put(path, data=payload).json()
+        response = self.connection.session.put(path, data=payload)
+        self.validate_response(response)
+        return response.json()
 
     def delete(self, id):
         "delete a given record"
         path = self.url + '/%d' % id
-        return self.connection.session.delete(path).json()
+        response = self.connection.session.delete(path)
+        self.validate_response(response)
+        return response.json()
 
 
 class Product(Resource):
