@@ -25,6 +25,10 @@ class Spree(object):
     def get_variant(self, product_id):
         return Variant(product_id, connection=self)
 
+    @property
+    def stock_locations(self):
+        return StockLocation(connection=self)
+
 
 class Pagination(object):
     def __init__(self, data, items_attribute, resource, filters=None):
@@ -199,6 +203,15 @@ class Order(Resource):
 
     path = '/orders'
     item_attribute = 'orders'
+
+
+class StockLocation(Resource):
+    """
+    A stock location Resource class
+    """
+
+    path = '/stock_locations'
+    item_attribute = 'stock_locations'
 
 
 class StockItem(Resource):
