@@ -68,6 +68,15 @@ def test_finding_one_order(resp, spree):
     assert test_order['token'] == 'aAoojFjB1_PCBeLR1VPnIg'
 
 
+def test_finding_stock_locations(resp, spree):
+    "test finding stock locations"
+    stock_locations = spree.stock_locations.find()
+
+    # get a specific stock location with id
+    stock_location = spree.stock_locations.get(1)
+    assert stock_location == stock_locations[0]
+
+
 def test_stock_items_all(resp, spree):
     "test fetching all stock items"
     stock_item = spree.get_stock_item(1)
