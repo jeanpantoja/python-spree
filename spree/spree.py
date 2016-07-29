@@ -29,8 +29,8 @@ class Spree(object):
     def stock_locations(self):
         return StockLocation(connection=self)
 
-    def shipment(self, shipment_number=None):
-        return Shipment(shipment_number, connection=self)
+    def shipment(self, order_number):
+        return Shipment(order_number, connection=self)
 
 
 class Pagination(object):
@@ -266,9 +266,13 @@ class Shipment(Resource):
     path = '/shipments'
     item_attribute = 'shipments'
 
-    def __init__(self, shipment_number, *args, **kwargs):
+    def __init__(self, order_number, *args, **kwargs):
         super(Shipment, self).__init__(*args, **kwargs)
-        self.shipment_number = shipment_number
+        self.order_number = order_number
+
+    @property
+    def path(self):
+        return '/orders/%s/shipments' % self.order_number
 
     def load_payload(self, data):
         if 'tracking' in data:
@@ -277,50 +281,30 @@ class Shipment(Resource):
             data['shipment[number]'] = data.pop('number')
         return super(Shipment, self).load_payload(data)
 
-    def create(self, order_number, data):
-        """
-        Method to create shipment for corresponding order_number
+    def ready(self, shipment_number, data={}):
+        data['path'] = self.url + '/%s' % shipment_number + '/ready'
+        return self.update(shipment_number, data)
 
-        :param data: Dictionary of items required for creating a
-        shipment which needs 'order_id', 'stock_location_id' and
-        'variant_id'
-        """
-        # TODO: Add a test here to verify that all required args
-        # are available in 'data'
-        params = {
-            'shipment[order_id]': order_number,
-        }
-        payload = self.load_payload(data)
-        response = self.connection.session.post(
-            self.url, params=params, data=payload
-        )
-        self.validate_response(response)
-        return response.json()
+    def ship(self, shipment_number, data={}):
+        data['path'] = self.url + '/%s' % shipment_number + '/ship'
+        return self.update(shipment_number, data)
 
-    def ready(self, data={}):
-        data['path'] = self.url + '/%s' % self.shipment_number + '/ready'
-        return self.update(data)
+    def add(self, shipment_number, data):
+        data['path'] = self.url + '/%s' % shipment_number + '/add'
+        return self.update(shipment_number, data)
 
-    def ship(self, data={}):
-        data['path'] = self.url + '/%s' % self.shipment_number + '/ship'
-        return self.update(data)
+    def remove(self, shipment_number, data):
+        data['path'] = self.url + '/%s' % shipment_number + '/remove'
+        return self.update(shipment_number, data)
 
-    def add(self, data):
-        data['path'] = self.url + '/%s' % self.shipment_number + '/add'
-        return self.update(data)
-
-    def remove(self, data):
-        data['path'] = self.url + '/%s' % self.shipment_number + '/remove'
-        return self.update(data)
-
-    def update(self, data, *args):
+    def update(self, shipment_number, data):
         """
         Method to update shipment information
 
         :param shipment_number: Unique identifier of the shipment
         :param data: Dictionary of attributes to be updated
         """
-        path = self.url + '/%s' % self.shipment_number
+        path = self.url + '/%s' % shipment_number
         if data.get('path'):
             path = data.pop('path')
         payload = self.load_payload(data)
