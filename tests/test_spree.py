@@ -98,9 +98,17 @@ def test_finding_one_stock_item(resp, spree):
 
 def test_variant_via_permalink(resp, spree):
     "test fetching variant by product permalink"
-    variant = spree.get_variant('ruby-on-rails-jr-spaghetti')
+    variant = spree.variant('ruby-on-rails-jr-spaghetti')
     test_variants = variant.find()
     test_variant = test_variants[0]
     assert test_variant['sku'] == 'ROR-00013'
     assert test_variant['price'] == '19.99'
     assert test_variant['cost_price'] == '17.0'
+
+
+def test_variant_with_out_permalink(resp, spree):
+    "test fetching variant by product permalink"
+    variant = spree.variant().get(4)
+    assert variant['sku'] == 'ROR-00013'
+    assert variant['price'] == '19.99'
+    assert variant['cost_price'] == '17.0'

@@ -22,7 +22,7 @@ class Spree(object):
     def get_stock_item(self, location_id):
         return StockItem(location_id, connection=self)
 
-    def get_variant(self, product_id):
+    def variant(self, product_id=None):
         return Variant(product_id, connection=self)
 
     @property
@@ -256,6 +256,19 @@ class Variant(Resource):
     @property
     def path(self):
         return '/products/%s/variants' % self.product_id
+
+    def get(self, id):
+        "Fetch a record with given id"
+        if not self.product_id:
+            path = self.connection.url + '/variants'
+            response = self.connection.session.get(
+                path, params={'q[id_eq]': id}
+            )
+            self.validate_response(response)
+            response, = response.json()[self.item_attribute]
+            return response
+
+        return super(Variant, self).get(id)
 
 
 class Shipment(Resource):
