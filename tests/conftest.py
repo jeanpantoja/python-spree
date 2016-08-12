@@ -69,6 +69,11 @@ def resp(fp):
         'http://mystore/api/products/ruby-on-rails-jr-spaghetti/variants',
         body=open(fp('responses/variant-ROR-00013.json'), 'r').read()
     )
+    rsps.add(
+        responses.GET,
+        'http://mystore/api/variants',
+        body=open(fp('responses/variant-ROR-00013.json'), 'r').read()
+    )
 
     "Stock Locations"
     rsps.add(
