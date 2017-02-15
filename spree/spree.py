@@ -265,8 +265,14 @@ class Variant(Resource):
                 path, params={'q[id_eq]': id}
             )
             self.validate_response(response)
-            response, = response.json()[self.item_attribute]
-            return response
+            try:
+                response, = response.json()[self.item_attribute]
+            except ValueError:
+                raise ResourceNotFound(
+                    'No active variant found for identifier: %s' % id
+                )
+            else:
+                return response
 
         return super(Variant, self).get(id)
 
